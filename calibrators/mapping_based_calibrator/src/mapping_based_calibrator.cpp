@@ -434,9 +434,9 @@ rcl_interfaces::msg::SetParametersResult ExtrinsicMappingBasedCalibrator::paramC
   std::unique_lock<std::mutex> service_lock(service_mutex_);
 
   if (!mapping_data_) {
-    RCLCPP_WARN(this->get_logger(), "Can not modify the parameters after finishing caliibration");
+    RCLCPP_WARN(this->get_logger(), "Can not modify the parameters after finishing calibration");
     result.successful = false;
-    result.reason = "Can not modify the parameters after finishing caliibration";
+    result.reason = "Can not modify the parameters after finishing calibration";
     return result;
   }
 

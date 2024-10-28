@@ -92,7 +92,7 @@ protected:
     const std::vector<rclcpp::Parameter> & parameters);
 
   /*!
-   * Unsuscribe from all the topics to release associated resources
+   * Unsubscribe from all the topics to release associated resources
    */
   void unsubscribe();
 
