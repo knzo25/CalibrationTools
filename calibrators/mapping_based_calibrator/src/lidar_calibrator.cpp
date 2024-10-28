@@ -117,16 +117,6 @@ void LidarCalibrator::configureCalibrators()
   }
 }
 
-void LidarCalibrator::setUpCalibrators(
-  [[maybe_unused]] PointcloudType::Ptr & source_pointcloud_ptr,
-  [[maybe_unused]] PointcloudType::Ptr & target_pointcloud_ptr)
-{
-  /*   for (auto & calibrator : calibration_registrators_) {
-      calibrator->setInputSource(source_pointcloud_ptr);
-      calibrator->setInputTarget(target_pointcloud_ptr);
-    } */
-}
-
 std::tuple<bool, Eigen::Matrix4d, float> LidarCalibrator::calibrate()
 {
   std::unique_lock<std::recursive_mutex> lock(data_->mutex_);

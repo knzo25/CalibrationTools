@@ -65,14 +65,6 @@ public:
   void configureCalibrators() override;
 
 protected:
-  /*!
-   * Prepare calibrators for a specific pair of pointclouds
-   * @param[in] source_pointcloud_ptr Source pointcloud
-   * @param[in] target_pointcloud_ptr Target pointcloud
-   */
-  void setUpCalibrators(
-    PointcloudType::Ptr & source_pointcloud_ptr, PointcloudType::Ptr & target_pointcloud_ptr);
-
   // General methods
 
   /*!
