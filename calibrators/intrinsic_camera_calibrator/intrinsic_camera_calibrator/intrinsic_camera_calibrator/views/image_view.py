@@ -27,6 +27,7 @@ from PySide2.QtGui import QImage
 from PySide2.QtGui import QPainter
 from PySide2.QtGui import QPen
 from PySide2.QtGui import QPixmap
+from PySide2.QtGui import QFont
 from PySide2.QtWidgets import QGraphicsItem
 from PySide2.QtWidgets import QGraphicsView
 import cv2
@@ -201,6 +202,77 @@ class ImageView(QGraphicsItem, QObject):
     def set_rendering_alpha(self, value: float):
         """Set the alpha channel of the drawings."""
         self.rendering_alpha = value
+
+    def set_draw_indicators(self, board_speed: float, max_allowed_board_speed: float,
+                                skew_percentage: float, board_size_percentage: float,
+                                value: bool):
+        """Set values for the indicators."""
+        self.current_board_speed = board_speed
+        self.max_board_allowed_speed = max_allowed_board_speed
+        self.skew_percentage = skew_percentage
+        self.board_size_percentage = board_size_percentage
+        self.is_draw_speed_indicator = value
+    
+    def draw_indicators(self, painter: QPainter, display_size):
+        """Draw indicators for speed, skew and size of the detected board."""
+        color_green = QColor(0.0, 255, 0.0, int(255 * self.rendering_alpha))
+        color_red = QColor(255, 0.0, 0.0, int(255 * self.rendering_alpha))
+        if (self.current_board_speed < self.max_board_allowed_speed):
+            pen = QPen(color_green)
+            brush = QBrush(color_green)
+        else:
+            pen = QPen(color_red)
+            brush = QBrush(color_red)
+        painter.setPen(pen)
+        painter.setBrush(brush)
+        speed_indicator = QRectF(QPointF(0, 0), QSize(display_size.width(), int(display_size.height()*0.04)))
+        # Draw the rectangle
+        painter.drawRect(speed_indicator)
+
+        # Set the font according to the window size
+        font_size = max(10, display_size.height() / 40)
+        font = QFont("Arial", font_size)
+        painter.setFont(font)
+        position_text_speed = QPointF(int(display_size.width() * .01), int(display_size.height() * .10))
+        painter.drawText(position_text_speed, "Speed")
+
+        thresold_to_be_green = 0.3
+        if self.skew_percentage < thresold_to_be_green:
+            pen_skew = QPen(color_red)
+            brush_skew = QBrush(color_red)
+        else:
+            pen_skew = QPen(color_green)
+            brush_skew = QBrush(color_green)
+        painter.setPen(pen_skew)
+        painter.setBrush(brush_skew)
+
+        # Draw Skew text
+        position_text_skew = QPointF(int(display_size.width() * .01), int(display_size.height() * .88))
+        painter.drawText(position_text_skew, "Skew " + str(int(self.skew_percentage * 100)) + "%")
+
+        skew_indicator = QRectF(QPointF(int(display_size.width() * .12), int(display_size.height() * .85)),
+                                  QSize(display_size.width() * 0.08 * self.skew_percentage, int(display_size.height()*0.03)))
+        # Draw the skew progrees bar
+        painter.drawRect(skew_indicator)
+        
+        thresold_to_be_green = 0.2
+        if self.board_size_percentage < thresold_to_be_green:
+            pen_size_board = QPen(color_red)
+            brush_size_board = QBrush(color_red)
+        else:
+            pen_size_board = QPen(color_green)
+            brush_size_board = QBrush(color_green)
+
+        painter.setPen(pen_size_board)
+        painter.setBrush(brush_size_board)
+
+        # Draw board size text
+        position_text_size = QPointF(int(display_size.width() * .01), int(display_size.height() * .93))
+        painter.drawText(position_text_size, "Size " + str(int(self.board_size_percentage * 100)) + "%")
+        board_size_indicator = QRectF(QPointF(int(display_size.width() * .12), int(display_size.height() * .90)),
+                                  QSize(display_size.width() * 0.08 * self.board_size_percentage, int(display_size.height() * 0.03)))
+        # Draw the board size progrees bar
+        painter.drawRect(board_size_indicator)
 
     def pixmap(self) -> QPixmap:
         """Return the rendering QPixmap."""
@@ -440,6 +512,9 @@ class ImageView(QGraphicsItem, QObject):
 
         if self.is_draw_evaluation_heatmap and self.evaluation_heatmap is not None:
             self.draw_heatmap(painter, self.evaluation_heatmap, display_size)
+        
+        if self.is_draw_speed_indicator and self.current_board_speed is not None:
+            self.draw_indicators(painter, display_size)
 
     def boundingRect(self):
         """Return the size of the Widget to let other widgets  adjust correctly."""

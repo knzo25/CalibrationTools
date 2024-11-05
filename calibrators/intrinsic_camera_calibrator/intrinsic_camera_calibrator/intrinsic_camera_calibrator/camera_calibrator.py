@@ -123,6 +123,7 @@ class CameraIntrinsicsCalibratorUI(QMainWindow):
 
         self.image_view_mode = ImageViewMode.SOURCE_UNRECTIFIED
         self.paused = False
+        self.last_detection = None
 
         for calibrator_type in CalibratorEnum:
             calibrator_cfg = defaultdict()
@@ -948,6 +949,14 @@ class CameraIntrinsicsCalibratorUI(QMainWindow):
             self.evaluation_occupancy_rate_label.setText(
                 f"Evaluation occupancy: {100.0*self.data_collector.get_evaluation_occupancy_rate():.2f}"  # noqa E231
             )
+
+            board_speed = 0 if self.last_detection is None else detection.get_speed(self.last_detection)
+            self.last_detection = detection
+            self.image_view.set_draw_indicators(board_speed,
+                                                 self.data_collector.max_allowed_pixel_speed.value,
+                                                 self.data_collector.get_skew_percentage(),
+                                                 self.data_collector.get_size_percentage(),
+                                                 True)
 
         # Draw training / evaluation points
         self.image_view.set_draw_training_points(self.draw_training_points_checkbox.isChecked())
