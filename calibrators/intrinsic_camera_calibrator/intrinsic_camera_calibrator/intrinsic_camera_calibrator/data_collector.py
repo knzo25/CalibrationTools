@@ -467,7 +467,7 @@ class DataCollector(ParameterizedClass):
             speed = 0 if self.last_detection is None else detection.get_speed(self.last_detection)
             self.last_detection = detection
 
-            accepted &= speed < self.max_allowed_speed
+            accepted &= speed < self.max_allowed_pixel_speed.value
 
         if self.filter_by_reprojection_error:
             reprojection_errors = detection.get_reprojection_errors()
