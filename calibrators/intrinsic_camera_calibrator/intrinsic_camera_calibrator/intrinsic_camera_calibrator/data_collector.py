@@ -530,3 +530,47 @@ class DataCollector(ParameterizedClass):
             return CollectionStatus.ACCEPTED
 
         return CollectionStatus.REDUNDANT
+    
+    def get_skew_coverage(self):
+        # Define the number of intervals
+        num_intervals = 50
+        interval_size = 1 / num_intervals
+        # Create a unique set to store covered intervals
+        covered_intervals = set()
+        # range in radians ToDo: define the range
+        skew_range = np.array([0,1.04])
+
+        for detection in self.training_data.get_detections():
+            if skew_range[0] <= detection.get_normalized_skew() < skew_range[1]:
+                interval_index = int(detection.get_normalized_skew() / interval_size)
+                covered_intervals.add(interval_index)
+
+        # Calculate the percentage of covered intervals
+        percentage_coverage = (len(covered_intervals) / num_intervals) # * 100
+
+        return percentage_coverage
+    
+    def get_skew_percentage(self):
+        return self.get_skew_coverage()
+
+    def get_size_coverage(self):
+        # Define the number of intervals
+        num_intervals = 20
+        interval_size = 1 / num_intervals
+        # Create a set to store covered intervals
+        covered_intervals = set()
+        # range for board size ToDo: define the range
+        size_range = np.array([0.08,0.21])
+
+        for detection in self.training_data.get_detections():
+            if size_range[0] <= detection.get_normalized_size() < size_range[1]:
+                interval_index = int(detection.get_normalized_size() / interval_size)
+                covered_intervals.add(interval_index)
+
+        # Calculate the percentage of covered intervals
+        percentage_coverage = (len(covered_intervals) / num_intervals) # * 100
+
+        return percentage_coverage
+    
+    def get_size_percentage(self):
+        return self.get_size_coverage()
