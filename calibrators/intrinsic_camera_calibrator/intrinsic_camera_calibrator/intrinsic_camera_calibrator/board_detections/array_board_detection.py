@@ -64,8 +64,8 @@ class ArrayBoardDetection(BoardDetection):
             p2 /= np.linalg.norm(p2)
             return np.abs(np.power(np.linalg.norm(p), 2) - np.power(np.dot(p, p2), 2))
 
-        if self._cached_linear_error_rms is not None:
-            return self._cached_linear_error_rms
+        if self._cached_linear_error_rows_rms is not None and self._cached_linear_error_cols_rms is not None:
+            return self._cached_linear_error_rows_rms, self._cached_linear_error_cols_rms
 
         error = 0
 
@@ -77,8 +77,21 @@ class ArrayBoardDetection(BoardDetection):
                 p = self.image_points[j, i]
                 error += squared_error(p, p1, p2)
 
-        self._cached_linear_error_rms = np.sqrt(error / (self.rows * (self.cols - 2)))
-        return self._cached_linear_error_rms
+        self._cached_linear_error_rows_rms = np.sqrt(error / (self.rows * (self.cols - 2)))
+        
+        error_cols = 0
+
+        for j in range(self.cols):
+            p1 = self.image_points[0, j]
+            p2 = self.image_points[-1, j]
+
+            for i in range(1, self.rows - 1):
+                p = self.image_points[i, j]
+                error_cols += squared_error(p, p1, p2)
+
+        self._cached_linear_error_cols_rms = np.sqrt(error_cols / (self.cols * (self.rows - 2)))
+        
+        return self._cached_linear_error_rows_rms, self._cached_linear_error_cols_rms
 
     def get_flattened_cell_sizes(self):
         if self._cached_flattened_cell_sizes is not None:

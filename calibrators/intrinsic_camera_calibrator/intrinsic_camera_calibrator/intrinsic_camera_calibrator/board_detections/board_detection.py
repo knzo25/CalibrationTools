@@ -44,6 +44,8 @@ class BoardDetection:
         self._cached_normalized_skew = None
         self._cached_normalized_size = None
         self._cached_linear_error_rms = None
+        self._cached_linear_error_rows_rms = None
+        self._cached_linear_error_cols_rms = None
         self._cached_flattened_cell_sizes = None
         self._cached_center_2d = None
 

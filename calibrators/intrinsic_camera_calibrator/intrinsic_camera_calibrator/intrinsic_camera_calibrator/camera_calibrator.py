@@ -463,6 +463,8 @@ class CameraIntrinsicsCalibratorUI(QMainWindow):
 
         self.raw_detection_label = QLabel("Detected:")
         self.raw_linear_error_rms_label = QLabel("Linear error (rms):")
+        self.raw_linear_error_rows_rms_label = QLabel("Linear error rows (rms):")
+        self.raw_linear_error_cols_rms_label = QLabel("Linear error cols (rms):")
         self.rough_tilt_label = QLabel("Rough tilt:")
         self.rough_angles_label = QLabel("Rough angles:")
         self.rough_position_label = QLabel("Rough position:")
@@ -486,6 +488,8 @@ class CameraIntrinsicsCalibratorUI(QMainWindow):
         raw_detection_results_layout.addWidget(self.skew_label)
         raw_detection_results_layout.addWidget(self.relative_area_label)
         raw_detection_results_layout.addWidget(self.raw_linear_error_rms_label)
+        raw_detection_results_layout.addWidget(self.raw_linear_error_rows_rms_label)
+        raw_detection_results_layout.addWidget(self.raw_linear_error_cols_rms_label)
 
         single_shot_detection_results_layout.addWidget(
             self.single_shot_reprojection_error_max_label
@@ -603,6 +607,9 @@ class CameraIntrinsicsCalibratorUI(QMainWindow):
         self.draw_evaluation_heatmap_checkbox.setChecked(False)
         self.draw_evaluation_heatmap_checkbox.stateChanged.connect(draw_evaluation_heatmap_callback)
 
+        self.draw_indicators_checkbox = QCheckBox("Draw indicators")
+        self.draw_indicators_checkbox.setChecked(False)
+
         rendering_alpha_label = QLabel("Drawings alpha:")
 
         self.rendering_alpha_spinbox = QDoubleSpinBox()
@@ -624,6 +631,14 @@ class CameraIntrinsicsCalibratorUI(QMainWindow):
         )
         self.undistortion_alpha_spinbox.setEnabled(False)
 
+        indicators_alpha_label = QLabel("Indicators alpha:")
+
+        self.indicators_alpha_spinbox = QDoubleSpinBox()
+        self.indicators_alpha_spinbox.setDecimals(2)
+        self.indicators_alpha_spinbox.setRange(0.0, 1.0)
+        self.indicators_alpha_spinbox.setSingleStep(0.05)
+        self.indicators_alpha_spinbox.setValue(1.0)
+
         visualization_options_layout = QVBoxLayout()
         visualization_options_layout.setAlignment(Qt.AlignTop)
         visualization_options_layout.addWidget(draw_detection_checkbox)
@@ -631,10 +646,13 @@ class CameraIntrinsicsCalibratorUI(QMainWindow):
         visualization_options_layout.addWidget(self.draw_evaluation_points_checkbox)
         visualization_options_layout.addWidget(self.draw_training_heatmap_checkbox)
         visualization_options_layout.addWidget(self.draw_evaluation_heatmap_checkbox)
+        visualization_options_layout.addWidget(self.draw_indicators_checkbox)
         visualization_options_layout.addWidget(rendering_alpha_label)
         visualization_options_layout.addWidget(self.rendering_alpha_spinbox)
         visualization_options_layout.addWidget(undistortion_alpha_label)
         visualization_options_layout.addWidget(self.undistortion_alpha_spinbox)
+        visualization_options_layout.addWidget(indicators_alpha_label)
+        visualization_options_layout.addWidget(self.indicators_alpha_spinbox)
         self.visualization_options_group.setLayout(visualization_options_layout)
 
     def start(
@@ -844,6 +862,8 @@ class CameraIntrinsicsCalibratorUI(QMainWindow):
 
             self.raw_detection_label.setText("Detected: False")
             self.raw_linear_error_rms_label.setText("Linear error rms:")
+            self.raw_linear_error_rows_rms_label.setText("Linear error rows rms:")
+            self.raw_linear_error_cols_rms_label.setText("Linear error cols rms:")
             self.rough_tilt_label.setText("Rough tilt:")
             self.rough_angles_label.setText("Rough angles:")
             self.rough_position_label.setText("Rough position:")
@@ -853,6 +873,14 @@ class CameraIntrinsicsCalibratorUI(QMainWindow):
             self.single_shot_reprojection_error_max_label.setText("Reprojection error (max):")
             self.single_shot_reprojection_error_avg_label.setText("Reprojection error (avg):")
             self.single_shot_reprojection_error_rms_label.setText("Reprojection error (rms):")
+            board_speed = None
+            self.image_view.set_draw_indicators(board_speed,
+                                                 self.data_collector.max_allowed_pixel_speed.value,
+                                                 self.data_collector.get_skew_percentage(),
+                                                 self.data_collector.get_size_percentage(),
+                                                 0, 0,
+                                                 self.indicators_alpha_spinbox.value(),
+                                                 False)
 
         else:
             camera_model = (
@@ -916,8 +944,15 @@ class CameraIntrinsicsCalibratorUI(QMainWindow):
             rough_angles = detection.get_rotation_angles(camera_model)
 
             self.raw_detection_label.setText("Detected: True")
-            self.raw_linear_error_rms_label.setText(
-                f"Linear error rms: {detection.get_linear_error_rms():.2f} px"  # noqa E231
+            # self.raw_linear_error_rms_label.setText(
+            #     f"Linear rows error rms: {detection.get_linear_error_rms():.2f} px"  # noqa E231
+            # )
+            err_rms_rows, err_rms_cols = detection.get_linear_error_rms()
+            self.raw_linear_error_rows_rms_label.setText(
+                f"Linear error rows rms:  {err_rms_rows:.2f} px"  # noqa E231
+            )
+            self.raw_linear_error_cols_rms_label.setText(
+                f"Linear error cols rms:  {err_rms_cols:.2f} px"  # noqa E231
             )
             self.rough_tilt_label.setText(
                 f"Rough tilt: {detection.get_tilt():.2f} degrees"  # noqa E231
@@ -956,7 +991,9 @@ class CameraIntrinsicsCalibratorUI(QMainWindow):
                                                  self.data_collector.max_allowed_pixel_speed.value,
                                                  self.data_collector.get_skew_percentage(),
                                                  self.data_collector.get_size_percentage(),
-                                                 True)
+                                                 err_rms_rows, err_rms_cols,
+                                                 self.indicators_alpha_spinbox.value(),
+                                                 self.draw_indicators_checkbox.isChecked())
 
         # Draw training / evaluation points
         self.image_view.set_draw_training_points(self.draw_training_points_checkbox.isChecked())

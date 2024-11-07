@@ -205,18 +205,23 @@ class ImageView(QGraphicsItem, QObject):
 
     def set_draw_indicators(self, board_speed: float, max_allowed_board_speed: float,
                                 skew_percentage: float, board_size_percentage: float,
+                                rows_linear_error: float, cols_linear_error: float,
+                                alpha_indicators: float,
                                 value: bool):
         """Set values for the indicators."""
         self.current_board_speed = board_speed
         self.max_board_allowed_speed = max_allowed_board_speed
         self.skew_percentage = skew_percentage
         self.board_size_percentage = board_size_percentage
-        self.is_draw_speed_indicator = value
+        self.rows_linear_error = rows_linear_error
+        self.cols_linear_error = cols_linear_error
+        self.alpha_indicators = alpha_indicators 
+        self.is_draw_indicators = value
     
     def draw_indicators(self, painter: QPainter, display_size):
         """Draw indicators for speed, skew and size of the detected board."""
-        color_green = QColor(0.0, 255, 0.0, int(255 * self.rendering_alpha))
-        color_red = QColor(255, 0.0, 0.0, int(255 * self.rendering_alpha))
+        color_green = QColor(0.0, 255, 0.0, int(255 * self.alpha_indicators))
+        color_red = QColor(255, 0.0, 0.0, int(255 * self.alpha_indicators))
         if (self.current_board_speed < self.max_board_allowed_speed):
             pen = QPen(color_green)
             brush = QBrush(color_green)
@@ -273,6 +278,13 @@ class ImageView(QGraphicsItem, QObject):
                                   QSize(display_size.width() * 0.08 * self.board_size_percentage, int(display_size.height() * 0.03)))
         # Draw the board size progrees bar
         painter.drawRect(board_size_indicator)
+
+        # Draw Linear errors text
+        position_text_err_rows = QPointF(int(display_size.width() * .85), int(display_size.height() * .88))
+        painter.drawText(position_text_err_rows, "Err Rows " + str(round(self.rows_linear_error, 1)) + "px")
+
+        position_text_err_cols = QPointF(int(display_size.width() * .85), int(display_size.height() * .93))
+        painter.drawText(position_text_err_cols, "Err Cols " + str(round(self.cols_linear_error, 1)) + "px")
 
     def pixmap(self) -> QPixmap:
         """Return the rendering QPixmap."""
@@ -358,6 +370,87 @@ class ImageView(QGraphicsItem, QObject):
 
             painter.setPen(pen)
             painter.drawLine(QPointF(p1[0], p1[1]), QPointF(p2[0], p2[1]))
+
+    def draw_linear_errors(self, painter: QPainter):
+         #### ToDo here investigating how elements were drawn specially ines
+        # determine the linearity error 
+        if self.points_list is None:
+            return
+        def compute_line_equation(p1, p2):
+            A = p2[1] - p1[1]
+            B = p1[0] - p2[0]
+            C = p2[0] * p1[1] - p1[0] * p2[1]
+            return A, B, C
+        # Function to compute the perpendicular distance from point (x0, y0) to the line Ax + By + C = 0
+        def perpendicular_distance(x0, y0, A, B, C):
+            return abs(A * x0 + B * y0 + C) / np.sqrt(A ** 2 + B ** 2)
+        """Draw new lines."""
+        alpha = 255
+        pen = QPen(QColor(0.0, 255.0, 0.0, alpha))
+        painter.setPen(pen)
+        for i in range(len(self.points_list)):
+            p1 = self.image_to_view_factor * self.points_list[i][0] # first element
+            p2 = self.image_to_view_factor * self.points_list[i][-1] # last element
+            line_pixel_distance = np.sqrt((p2[0] - p1[0])**2 + (p2[1] - p1[1])**2)
+            panel_width_mm = 700
+            conv_factor_chessboard_mm = panel_width_mm / line_pixel_distance
+            # Set the font according to the window size
+            font_size = 12
+            font = QFont("Arial", font_size)
+            painter.setFont(font)
+            # position_text_speed = QPointF(p1[0],p1[1])
+            # painter.drawText(position_text_speed, "S")
+            # position_text_speed = QPointF(p2[0],p2[1])
+            # painter.drawText(position_text_speed, "E")
+            # painter.drawLine(QPointF(p1[0], p1[1]), QPointF(p2[0],p2[1]))
+
+            A, B, C = compute_line_equation(p1, p2)
+            count = 0
+            mse = 0
+            for point in self.points_list[i]:
+                x0, y0 = self.image_to_view_factor * point
+                distance_mm = conv_factor_chessboard_mm * perpendicular_distance(x0, y0, A, B, C)
+                mse = mse + distance_mm ** 2
+                count += 1
+            mse = mse / count
+            # position_text_speed = QPointF(p1[0],p1[1])
+            # painter.drawText(position_text_speed, "E:" + str(round(mse,1)))
+
+        ## we got for rows now for columns    
+        
+        alpha = 255
+        pen = QPen(QColor(255.0, 0.0, 0.0, alpha))
+        painter.setPen(pen)
+        for i in range(len(self.points_list[0])):
+            p1 = self.image_to_view_factor * self.points_list[0][i] # first element
+            p2 = self.image_to_view_factor * self.points_list[-1][i] # last element
+            line_pixel_distance = np.sqrt((p2[0] - p1[0])**2 + (p2[1] - p1[1])**2)
+            panel_width_mm = 700
+            conv_factor_chessboard_mm = panel_width_mm / line_pixel_distance
+            # Set the font according to the window size
+            # font_size = 12
+            # font = QFont("Arial", font_size)
+            # painter.setFont(font)
+            # position_text_speed = QPointF(p1[0],p1[1])
+            # painter.drawText(position_text_speed, "nS")
+            # position_text_speed = QPointF(p2[0],p2[1])
+            # painter.drawText(position_text_speed, "nE")
+            # painter.drawLine(QPointF(p1[0], p1[1]), QPointF(p2[0],p2[1]))
+        
+            A, B, C = compute_line_equation(p1, p2)
+            count = 0
+            mse = 0
+            #worst_dst_meters = 0
+            for j in range (1,len(self.points_list)-1):
+                x0, y0 = self.image_to_view_factor * self.points_list[j][i]
+                distance_mm = conv_factor_chessboard_mm * perpendicular_distance(x0, y0, A, B, C)
+                mse = mse + distance_mm ** 2
+                # position_text_p = QPointF(x0,y0)
+                # painter.drawText(position_text_p, str(j))
+                count += 1
+            mse = mse / count
+            # position_text_speed = QPointF(p1[0],p1[1])
+            # painter.drawText(position_text_speed, "E:" + str(round(mse,1)))
 
     def draw_points(self, painter: QPainter, points: np.array):
         """Draw a set of points as rectangles."""
@@ -513,8 +606,9 @@ class ImageView(QGraphicsItem, QObject):
         if self.is_draw_evaluation_heatmap and self.evaluation_heatmap is not None:
             self.draw_heatmap(painter, self.evaluation_heatmap, display_size)
         
-        if self.is_draw_speed_indicator and self.current_board_speed is not None:
+        if self.is_draw_indicators and self.current_board_speed is not None:
             self.draw_indicators(painter, display_size)
+            self.draw_linear_errors(painter)
 
     def boundingRect(self):
         """Return the size of the Widget to let other widgets  adjust correctly."""
