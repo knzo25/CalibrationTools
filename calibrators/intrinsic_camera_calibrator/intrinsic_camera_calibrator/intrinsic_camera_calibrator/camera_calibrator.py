@@ -688,6 +688,12 @@ class CameraIntrinsicsCalibratorUI(QMainWindow):
 
         if self.operation_mode == OperationMode.EVALUATION:
             self.calibration_button.setEnabled(False)
+            # ToDo Verify if this changes everything correctly
+            self.calibrated_camera_model = self.current_camera_model
+            self.image_view_type_combobox.setEnabled(True)
+            self.image_view_type_combobox.setCurrentIndex(1) # rectified
+            self.undistortion_alpha_spinbox.setEnabled(True)
+            self.calibration_parameters_button.setEnabled(False)
 
         self.detector.moveToThread(self.detector_thread)
         self.detector.detection_results_signal.connect(self.process_detection_results)

@@ -218,8 +218,8 @@ class CameraModel:
         self.k = np.array(d["camera_matrix"]["data"]).reshape(
             d["camera_matrix"]["rows"], d["camera_matrix"]["cols"]
         )
-        self.d = np.array(d["distortion_model"]["data"]).reshape(
-            d["distortion_model"]["rows"], d["distortion_model"]["cols"]
+        self.d = np.array(d["distortion_coefficients"]["data"]).reshape(
+            d["distortion_coefficients"]["rows"], d["distortion_coefficients"]["cols"]
         )
 
 
