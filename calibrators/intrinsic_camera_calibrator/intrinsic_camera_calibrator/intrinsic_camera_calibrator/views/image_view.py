@@ -206,6 +206,7 @@ class ImageView(QGraphicsItem, QObject):
     def set_draw_indicators(self, board_speed: float, max_allowed_board_speed: float,
                                 skew_percentage: float, board_size_percentage: float,
                                 rows_linear_error: float, cols_linear_error: float,
+                                pct_err_rows: float, pct_err_cols: float,
                                 alpha_indicators: float,
                                 value: bool):
         """Set values for the indicators."""
@@ -215,6 +216,8 @@ class ImageView(QGraphicsItem, QObject):
         self.board_size_percentage = board_size_percentage
         self.rows_linear_error = rows_linear_error
         self.cols_linear_error = cols_linear_error
+        self.pct_err_rows = pct_err_rows
+        self.pct_err_cols = pct_err_cols
         self.alpha_indicators = alpha_indicators 
         self.is_draw_indicators = value
     
@@ -280,11 +283,13 @@ class ImageView(QGraphicsItem, QObject):
         painter.drawRect(board_size_indicator)
 
         # Draw Linear errors text
-        position_text_err_rows = QPointF(int(display_size.width() * .85), int(display_size.height() * .88))
-        painter.drawText(position_text_err_rows, "Err Rows " + str(round(self.rows_linear_error, 1)) + "px")
+        position_text_err_rows = QPointF(int(display_size.width() * .80), int(display_size.height() * .88))
+        painter.drawText(position_text_err_rows, "ErrRows " + str(round(self.rows_linear_error, 1)) + "px " + \
+                         str(round(self.pct_err_rows * 100, 1)) + "%")
 
-        position_text_err_cols = QPointF(int(display_size.width() * .85), int(display_size.height() * .93))
-        painter.drawText(position_text_err_cols, "Err Cols " + str(round(self.cols_linear_error, 1)) + "px")
+        position_text_err_cols = QPointF(int(display_size.width() * .80), int(display_size.height() * .93))
+        painter.drawText(position_text_err_cols, "ErrCols " + str(round(self.cols_linear_error, 1)) + "px " + \
+                         str(round(self.pct_err_cols *100, 1)) + "%")
 
     def pixmap(self) -> QPixmap:
         """Return the rendering QPixmap."""
