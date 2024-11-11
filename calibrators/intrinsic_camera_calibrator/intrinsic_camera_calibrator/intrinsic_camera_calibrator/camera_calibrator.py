@@ -879,6 +879,7 @@ class CameraIntrinsicsCalibratorUI(QMainWindow):
                                                  self.data_collector.get_skew_percentage(),
                                                  self.data_collector.get_size_percentage(),
                                                  0, 0,
+                                                 0, 0,
                                                  self.indicators_alpha_spinbox.value(),
                                                  False)
 
@@ -947,7 +948,7 @@ class CameraIntrinsicsCalibratorUI(QMainWindow):
             # self.raw_linear_error_rms_label.setText(
             #     f"Linear rows error rms: {detection.get_linear_error_rms():.2f} px"  # noqa E231
             # )
-            err_rms_rows, err_rms_cols = detection.get_linear_error_rms()
+            err_rms_rows, err_rms_cols, pct_err_rows, pct_err_cols = detection.get_linear_error_rms()
             self.raw_linear_error_rows_rms_label.setText(
                 f"Linear error rows rms:  {err_rms_rows:.2f} px"  # noqa E231
             )
@@ -992,6 +993,7 @@ class CameraIntrinsicsCalibratorUI(QMainWindow):
                                                  self.data_collector.get_skew_percentage(),
                                                  self.data_collector.get_size_percentage(),
                                                  err_rms_rows, err_rms_cols,
+                                                 pct_err_rows, pct_err_cols,
                                                  self.indicators_alpha_spinbox.value(),
                                                  self.draw_indicators_checkbox.isChecked())
 
