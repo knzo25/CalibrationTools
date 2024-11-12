@@ -462,9 +462,9 @@ class CameraIntrinsicsCalibratorUI(QMainWindow):
         self.single_shot_detection_results_group.setFlat(True)
 
         self.raw_detection_label = QLabel("Detected:")
-        self.raw_linear_error_rms_label = QLabel("Linear error (rms):")
         self.raw_linear_error_rows_rms_label = QLabel("Linear error rows (rms):")
         self.raw_linear_error_cols_rms_label = QLabel("Linear error cols (rms):")
+        self.aspect_ratio_label = QLabel("Aspect Ratio:")
         self.rough_tilt_label = QLabel("Rough tilt:")
         self.rough_angles_label = QLabel("Rough angles:")
         self.rough_position_label = QLabel("Rough position:")
@@ -487,9 +487,9 @@ class CameraIntrinsicsCalibratorUI(QMainWindow):
         raw_detection_results_layout.addWidget(self.rough_position_label)
         raw_detection_results_layout.addWidget(self.skew_label)
         raw_detection_results_layout.addWidget(self.relative_area_label)
-        raw_detection_results_layout.addWidget(self.raw_linear_error_rms_label)
         raw_detection_results_layout.addWidget(self.raw_linear_error_rows_rms_label)
         raw_detection_results_layout.addWidget(self.raw_linear_error_cols_rms_label)
+        raw_detection_results_layout.addWidget(self.aspect_ratio_label)
 
         single_shot_detection_results_layout.addWidget(
             self.single_shot_reprojection_error_max_label
@@ -602,10 +602,19 @@ class CameraIntrinsicsCalibratorUI(QMainWindow):
         def draw_evaluation_heatmap_callback(value):
             self.image_view.set_draw_evaluation_heatmap(value == Qt.Checked)
             self.should_process_image.emit()
+        
+        def draw_linearity_heatmap_callback(value):
+            self.image_view.set_draw_linearity_heatmap(value == Qt.Checked)
+            self.should_process_image.emit()
+            
 
         self.draw_evaluation_heatmap_checkbox = QCheckBox("Draw evaluation occupancy")
         self.draw_evaluation_heatmap_checkbox.setChecked(False)
         self.draw_evaluation_heatmap_checkbox.stateChanged.connect(draw_evaluation_heatmap_callback)
+
+        self.draw_linearity_heatmap_checkbox = QCheckBox("Draw lineariy error")
+        self.draw_linearity_heatmap_checkbox.setChecked(False)
+        self.draw_linearity_heatmap_checkbox.stateChanged.connect(draw_linearity_heatmap_callback)
 
         self.draw_indicators_checkbox = QCheckBox("Draw indicators")
         self.draw_indicators_checkbox.setChecked(False)
@@ -646,6 +655,7 @@ class CameraIntrinsicsCalibratorUI(QMainWindow):
         visualization_options_layout.addWidget(self.draw_evaluation_points_checkbox)
         visualization_options_layout.addWidget(self.draw_training_heatmap_checkbox)
         visualization_options_layout.addWidget(self.draw_evaluation_heatmap_checkbox)
+        visualization_options_layout.addWidget(self.draw_linearity_heatmap_checkbox)
         visualization_options_layout.addWidget(self.draw_indicators_checkbox)
         visualization_options_layout.addWidget(rendering_alpha_label)
         visualization_options_layout.addWidget(self.rendering_alpha_spinbox)
@@ -867,9 +877,9 @@ class CameraIntrinsicsCalibratorUI(QMainWindow):
             self.image_view.set_detection_ordered_points(None)
 
             self.raw_detection_label.setText("Detected: False")
-            self.raw_linear_error_rms_label.setText("Linear error rms:")
             self.raw_linear_error_rows_rms_label.setText("Linear error rows rms:")
             self.raw_linear_error_cols_rms_label.setText("Linear error cols rms:")
+            self.aspect_ratio_label.setText("Aspect Ratio:")
             self.rough_tilt_label.setText("Rough tilt:")
             self.rough_angles_label.setText("Rough angles:")
             self.rough_position_label.setText("Rough position:")
@@ -951,15 +961,16 @@ class CameraIntrinsicsCalibratorUI(QMainWindow):
             rough_angles = detection.get_rotation_angles(camera_model)
 
             self.raw_detection_label.setText("Detected: True")
-            # self.raw_linear_error_rms_label.setText(
-            #     f"Linear rows error rms: {detection.get_linear_error_rms():.2f} px"  # noqa E231
-            # )
+            detection.get_aspect_ratio_pattern_squares()
             err_rms_rows, err_rms_cols, pct_err_rows, pct_err_cols = detection.get_linear_error_rms()
             self.raw_linear_error_rows_rms_label.setText(
                 f"Linear error rows rms:  {err_rms_rows:.2f} px"  # noqa E231
             )
             self.raw_linear_error_cols_rms_label.setText(
                 f"Linear error cols rms:  {err_rms_cols:.2f} px"  # noqa E231
+            )
+            self.aspect_ratio_label.setText(
+                f"Aspect Reatio:  {detection.get_aspect_ratio_pattern_squares():.2f} px"  # noqa E231
             )
             self.rough_tilt_label.setText(
                 f"Rough tilt: {detection.get_tilt():.2f} degrees"  # noqa E231
@@ -1010,6 +1021,9 @@ class CameraIntrinsicsCalibratorUI(QMainWindow):
         self.image_view.set_draw_evaluation_heatmap(
             self.draw_evaluation_heatmap_checkbox.isChecked()
         )
+        self.image_view.set_draw_linearity_heatmap(
+            self.draw_linearity_heatmap_checkbox.isChecked()
+        )
 
         if self.draw_training_points_checkbox.isChecked():
             self.image_view.set_training_points(
@@ -1029,6 +1043,11 @@ class CameraIntrinsicsCalibratorUI(QMainWindow):
         if self.draw_evaluation_heatmap_checkbox.isChecked():
             self.image_view.set_evaluation_heatmap(
                 self.data_collector.get_evaluation_occupancy_heatmap()
+            )
+
+        if self.draw_linearity_heatmap_checkbox.isChecked():
+            self.image_view.set_linearity_heatmap(
+                self.data_collector.get_linearity_heatmap()
             )
 
         if (

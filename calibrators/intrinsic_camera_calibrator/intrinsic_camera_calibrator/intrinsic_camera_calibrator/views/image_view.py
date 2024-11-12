@@ -174,6 +174,10 @@ class ImageView(QGraphicsItem, QObject):
     def set_draw_evaluation_heatmap(self, value: bool):
         """Set the flag of wether or not to draw the occupancy heatmap of the evaluation dataset."""
         self.is_draw_evaluation_heatmap = value
+    
+    def set_draw_linearity_heatmap(self, value: bool):
+        """Set the flag of wether or not to draw the linearity heatmap."""
+        self.is_draw_linearity_heatmap = value
 
     def set_detection_ordered_points(self, points_list: List[np.array]):
         """Set the detection points to draw. The points are expected to be in a list of rows, where each row is rendered in a different color."""
@@ -194,6 +198,10 @@ class ImageView(QGraphicsItem, QObject):
     def set_evaluation_heatmap(self, value: np.array):
         """Set the occupancy heatmap to draw from the evaluation dataset."""
         self.evaluation_heatmap = value
+
+    def set_linearity_heatmap(self, value: np.array):
+        """Set the linearity heatmap to draw."""
+        self.linearity_heatmap = value
 
     def set_grid_size_pixels(self, cell_size_pixels):
         """Set the size in which to draw the detection's corners."""
@@ -610,6 +618,9 @@ class ImageView(QGraphicsItem, QObject):
 
         if self.is_draw_evaluation_heatmap and self.evaluation_heatmap is not None:
             self.draw_heatmap(painter, self.evaluation_heatmap, display_size)
+
+        if self.is_draw_linearity_heatmap and self.linearity_heatmap is not None:
+            self.draw_heatmap(painter, self.linearity_heatmap, display_size)
         
         if self.is_draw_indicators and self.current_board_speed is not None:
             self.draw_indicators(painter, display_size)

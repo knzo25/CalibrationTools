@@ -263,6 +263,7 @@ class DataCollector(ParameterizedClass):
 
         self.training_heatmap = np.zeros((self.heatmap_cells.value, self.heatmap_cells.value))
         self.evaluation_heatmap = np.zeros((self.heatmap_cells.value, self.heatmap_cells.value))
+        self.linearity_heatmap = np.zeros((self.heatmap_cells.value, self.heatmap_cells.value))
         self.training_occupancy_rate = 0.0
         self.evaluation_occupancy_rate = 0.0
 
@@ -361,6 +362,10 @@ class DataCollector(ParameterizedClass):
     def get_training_occupancy_heatmap(self) -> np.array:
         """Return the training heatmap, which defines the parts of the pixel space that have image points in it."""
         return self.training_heatmap
+    
+    def get_linearity_heatmap(self) -> np.array:
+        """Return the linearity map to evaluate the recitification error."""
+        return self.linearity_heatmap
 
     def get_evaluation_occupancy_heatmap(self) -> np.array:
         """Return the evaluation heatmap, which defines the parts of the pixel space that have image points in it."""
@@ -399,6 +404,38 @@ class DataCollector(ParameterizedClass):
 
         occupied = float(np.count_nonzero(heatmap > 0)) / np.prod(heatmap.shape)
         return occupied
+
+    def update_linearity_heatmap(self, heatmap: np.array, detection: BoardDetection) -> float:
+        """Update a heatmap with a single detection's image points."""
+        def squared_error(p, p1, p2):
+            p = p - p1
+            p2 = p2 - p1
+            p2 /= np.linalg.norm(p2)
+            squared_distance = np.abs(np.power(np.linalg.norm(p), 2) - np.power(np.dot(p, p2), 2))
+            return squared_distance
+        image_points = detection.get_ordered_image_points()
+
+        for j in range(detection.rows):
+            p1 = image_points[j][0]
+            p2 = image_points[j][-1]
+            for i in range(1, detection.cols - 1):
+                p = image_points[j][i]
+                sq_error = np.sqrt(squared_error(p, p1, p2))
+                x = int(heatmap.shape[1] * p[0] / detection.width)
+                y = int(heatmap.shape[0] * p[1] / detection.height)
+                if (heatmap[y, x] < sq_error):
+                    heatmap[y, x] = 1 * sq_error
+
+        for j in range(detection.cols):
+            p1 = image_points[0][j]
+            p2 = image_points[-1][j]
+            for i in range(1, detection.rows - 1):
+                p = image_points[i][j]
+                sq_error = np.sqrt(squared_error(p, p1, p2))
+                x = int(heatmap.shape[1] * p[0] / detection.width)
+                y = int(heatmap.shape[0] * p[1] / detection.height)
+                if (heatmap[y, x] < sq_error):
+                    heatmap[y, x] = 1 * sq_error
 
     def evaluate_redundancy(
         self,
@@ -462,7 +499,7 @@ class DataCollector(ParameterizedClass):
     ) -> CollectionStatus:
         """Evaluate if a detection should be added to either the training or evaluation dataset."""
         accepted = True
-
+        self.update_linearity_heatmap(self.linearity_heatmap, detection)
         if self.filter_by_speed.value:
             speed = 0 if self.last_detection is None else detection.get_speed(self.last_detection)
             self.last_detection = detection

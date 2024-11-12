@@ -101,6 +101,10 @@ class BoardDetection:
     def get_linear_error_rms(self) -> float:
         """Return RMS error product of the projection of the lines of each row of the detection into the line produced by the first and line point of each row."""
         raise NotImplementedError
+    
+    def get_aspect_ratio_pattern_squares(self) -> float:
+        """Return RMS error product of the projection of the lines of each row of the detection into the line produced by the first and line point of each row."""
+        raise NotImplementedError
 
     def get_center_2d(self) -> np.array:
         """Return the center of detection in the image."""

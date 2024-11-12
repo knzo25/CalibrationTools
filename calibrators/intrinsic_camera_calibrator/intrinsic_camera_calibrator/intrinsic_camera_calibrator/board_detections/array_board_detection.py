@@ -122,3 +122,30 @@ class ArrayBoardDetection(BoardDetection):
 
         self._cached_flattened_cell_sizes = cell_sizes.flatten()
         return self._cached_flattened_cell_sizes
+    
+    def get_aspect_ratio_pattern_squares(self) -> float:
+        # Calculate distances between adjacent corners
+        horizontal_distances = []
+        vertical_distances = []
+
+        for j in range(self.rows):
+            for i in range(self.cols - 1):
+                p1 = self.image_points[j, i]
+                p2 = self.image_points[j, i + 1]
+                points_distance = np.linalg.norm(p2 - p1)
+                horizontal_distances.append(points_distance)
+
+        for j in range(self.cols):
+            for i in range(self.rows - 1):
+                p1 = self.image_points[i, j]
+                p2 = self.image_points[i + 1, j]
+                points_distance = np.linalg.norm(p2 - p1)
+                vertical_distances.append(points_distance)
+
+        avg_horizontal = np.mean(horizontal_distances)
+        avg_vertical = np.mean(vertical_distances)
+        aspect_ratio = avg_horizontal / avg_vertical
+        #print("aspect_ratio: ", aspect_ratio)
+
+        return aspect_ratio
+
