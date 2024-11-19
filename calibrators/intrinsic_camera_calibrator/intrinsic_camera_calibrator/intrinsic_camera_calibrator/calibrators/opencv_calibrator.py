@@ -38,6 +38,8 @@ class OpenCVCalibrator(Calibrator):
         )
         self.fix_principal_point = Parameter(bool, value=False, min_value=False, max_value=True)
         self.fix_aspect_ratio = Parameter(bool, value=False, min_value=False, max_value=True)
+        self.use_lu_decomposition = Parameter(bool, value=False, min_value=False, max_value=True)
+        self.use_qr_decomposition = Parameter(bool, value=False, min_value=False, max_value=True)
 
         self.set_parameters(**cfg)
 
@@ -54,6 +56,8 @@ class OpenCVCalibrator(Calibrator):
         flags |= cv2.CALIB_FIX_K3 if self.radial_distortion_coefficients.value < 3 else 0
         flags |= cv2.CALIB_FIX_K2 if self.radial_distortion_coefficients.value < 2 else 0
         flags |= cv2.CALIB_FIX_K1 if self.radial_distortion_coefficients.value < 1 else 0
+        flags |= cv2.CALIB_USE_LU if self.use_lu_decomposition.value else 0
+        flags |= cv2.CALIB_USE_QR if self.use_qr_decomposition.value else 0
 
         height = detections[0].get_image_height()
         width = detections[0].get_image_width()

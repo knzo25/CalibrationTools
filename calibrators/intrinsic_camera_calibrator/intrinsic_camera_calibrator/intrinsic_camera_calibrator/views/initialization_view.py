@@ -136,6 +136,9 @@ class InitializationView(QWidget):
             )
             self.initial_intrinsics = load_intrinsics(intrinsics_path)
             self.evaluation_radio_button.setEnabled(True)
+            # self.training_radio_button.setChecked(False)
+            self.training_radio_button.setEnabled(False)
+            self.evaluation_radio_button.setChecked(True)
 
         self.load_intrinsics_button.clicked.connect(load_intrinsics_button_callback)
 

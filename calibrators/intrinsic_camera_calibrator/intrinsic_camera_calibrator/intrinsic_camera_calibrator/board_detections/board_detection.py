@@ -101,9 +101,13 @@ class BoardDetection:
     def get_linear_error_rms(self) -> float:
         """Return RMS error product of the projection of the lines of each row of the detection into the line produced by the first and line point of each row."""
         raise NotImplementedError
-    
-    def get_aspect_ratio_pattern_squares(self) -> float:
-        """Return RMS error product of the projection of the lines of each row of the detection into the line produced by the first and line point of each row."""
+
+    def get_aspect_ratio_pattern(self) -> float:
+        """Return aspect ratio obtained from the mean of the horizontal and vertical distances of the calibration pattern."""
+        raise NotImplementedError
+
+    def restart_linearity_heatmap(self):
+        """Restart linearity heatmap."""
         raise NotImplementedError
 
     def get_center_2d(self) -> np.array:

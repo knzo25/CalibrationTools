@@ -89,3 +89,14 @@ class ParameterizedClass:
                     p_dict[k] = v
 
             return p_dict
+
+    def parameters_value(self) -> dict:
+        """Return the Parameter objects' names and values from this class as a dictionary."""
+        with self.lock:
+            p_dict = {}
+
+            for k, v in vars(self).items():
+                if isinstance(v, Parameter):
+                    p_dict[k] = v.value
+
+            return p_dict

@@ -362,7 +362,7 @@ class DataCollector(ParameterizedClass):
     def get_training_occupancy_heatmap(self) -> np.array:
         """Return the training heatmap, which defines the parts of the pixel space that have image points in it."""
         return self.training_heatmap
-    
+
     def get_linearity_heatmap(self) -> np.array:
         """Return the linearity map to evaluate the recitification error."""
         return self.linearity_heatmap
@@ -414,28 +414,41 @@ class DataCollector(ParameterizedClass):
             squared_distance = np.abs(np.power(np.linalg.norm(p), 2) - np.power(np.dot(p, p2), 2))
             return squared_distance
         image_points = detection.get_ordered_image_points()
+        max_pct_error_tolerance = 0.04
 
         for j in range(detection.rows):
             p1 = image_points[j][0]
             p2 = image_points[j][-1]
+            points_dist = np.linalg.norm(p2 -p1)
             for i in range(1, detection.cols - 1):
                 p = image_points[j][i]
-                sq_error = np.sqrt(squared_error(p, p1, p2))
+                dist_error = np.sqrt(squared_error(p, p1, p2))
+                if (dist_error/points_dist > max_pct_error_tolerance):
+                    # if distance is too big most likely is a miss detection
+                    dist_error = 0
                 x = int(heatmap.shape[1] * p[0] / detection.width)
                 y = int(heatmap.shape[0] * p[1] / detection.height)
-                if (heatmap[y, x] < sq_error):
-                    heatmap[y, x] = 1 * sq_error
+                if (heatmap[y, x] < dist_error):
+                    heatmap[y, x] = 1 * dist_error
 
         for j in range(detection.cols):
             p1 = image_points[0][j]
             p2 = image_points[-1][j]
+            points_dist = np.linalg.norm(p2 -p1)
             for i in range(1, detection.rows - 1):
                 p = image_points[i][j]
-                sq_error = np.sqrt(squared_error(p, p1, p2))
+                dist_error = np.sqrt(squared_error(p, p1, p2))
+                if (dist_error/points_dist > max_pct_error_tolerance):
+                    # if distance is too big most likely is a miss detection
+                    dist_error = 0
                 x = int(heatmap.shape[1] * p[0] / detection.width)
                 y = int(heatmap.shape[0] * p[1] / detection.height)
-                if (heatmap[y, x] < sq_error):
-                    heatmap[y, x] = 1 * sq_error
+                if (heatmap[y, x] < dist_error):
+                    heatmap[y, x] = 1 * dist_error
+
+    def restart_linearity_heatmap(self):
+        """Restart heatmap created by aspect ratio."""
+        self.linearity_heatmap = np.zeros((self.heatmap_cells.value, self.heatmap_cells.value))
 
     def evaluate_redundancy(
         self,
@@ -499,7 +512,10 @@ class DataCollector(ParameterizedClass):
     ) -> CollectionStatus:
         """Evaluate if a detection should be added to either the training or evaluation dataset."""
         accepted = True
+
+        # process detections without filtering, only to get linearity heatmap
         self.update_linearity_heatmap(self.linearity_heatmap, detection)
+
         if self.filter_by_speed.value:
             speed = 0 if self.last_detection is None else detection.get_speed(self.last_detection)
             self.last_detection = detection
@@ -567,8 +583,20 @@ class DataCollector(ParameterizedClass):
             return CollectionStatus.ACCEPTED
 
         return CollectionStatus.REDUNDANT
-    
+
+    def process_detection_eval_mode(
+        self,
+        image: np.array,
+        detection: BoardDetection,
+        camera_model: Optional[CameraModel] = None,
+        mode: OperationMode = OperationMode.CALIBRATION,
+    ) -> CollectionStatus:
+        """Evaluate detections mad ein evaluation mode."""
+        # process wihtout filtering detections 
+        self.update_linearity_heatmap(self.linearity_heatmap, detection)
+
     def get_skew_coverage(self):
+        """Get skew percentage covered from a defined range for the indicators."""
         # Define the number of intervals
         num_intervals = 50
         interval_size = 1 / num_intervals
@@ -586,11 +614,13 @@ class DataCollector(ParameterizedClass):
         percentage_coverage = (len(covered_intervals) / num_intervals) # * 100
 
         return percentage_coverage
-    
+
     def get_skew_percentage(self):
+        """Get skew precentage with more useful name ToDo Refactor."""
         return self.get_skew_coverage()
 
     def get_size_coverage(self):
+        """Get board size percentage covered from a defined range for the indicators."""
         # Define the number of intervals
         num_intervals = 20
         interval_size = 1 / num_intervals
@@ -608,6 +638,7 @@ class DataCollector(ParameterizedClass):
         percentage_coverage = (len(covered_intervals) / num_intervals) # * 100
 
         return percentage_coverage
-    
+
     def get_size_percentage(self):
+        """Get size precentage with more useful name ToDo Refactor."""
         return self.get_size_coverage()
