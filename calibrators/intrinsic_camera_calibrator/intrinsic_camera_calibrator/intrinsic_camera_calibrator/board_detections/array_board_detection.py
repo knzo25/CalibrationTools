@@ -143,10 +143,10 @@ class ArrayBoardDetection(BoardDetection):
         for j in range(self.rows - 1):
             for i in range(self.cols - 1):
                 p = self.image_points[j, i]
-                pcol = self.image_points[j + 1, i]
-                prow = self.image_points[j, i + 1]
-                horizontal_distance = np.linalg.norm(p - prow)
-                vertical_distance = np.linalg.norm(p - pcol)
+                point_col = self.image_points[j + 1, i]
+                point_row = self.image_points[j, i + 1]
+                horizontal_distance = np.linalg.norm(p - point_row)
+                vertical_distance = np.linalg.norm(p - point_col)
                 aspect_ratio = aspect_ratio + (horizontal_distance / vertical_distance)
                 count += 1
         aspect_ratio = aspect_ratio / ((self.rows - 1) * (self.cols - 1))

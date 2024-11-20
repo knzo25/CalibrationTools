@@ -298,8 +298,8 @@ class ImageView(QGraphicsItem, QObject):
         painter.drawRect(skew_indicator)
 
         # ToDo: define percentage to change skew and pct size to change to green
-        thresold_to_be_green = 0.2
-        if self.board_size_percentage < thresold_to_be_green:
+        threshold_to_be_green = 0.2
+        if self.board_size_percentage < threshold_to_be_green:
             pen_size_board = QPen(color_red)
             brush_size_board = QBrush(color_red)
         else:
