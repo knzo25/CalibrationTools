@@ -581,7 +581,7 @@ class CameraIntrinsicsCalibratorUI(QMainWindow):
         self.draw_evaluation_heatmap_checkbox.setChecked(False)
         self.draw_evaluation_heatmap_checkbox.stateChanged.connect(draw_evaluation_heatmap_callback)
 
-        self.draw_linearity_heatmap_checkbox = QCheckBox("Draw lineariy error")
+        self.draw_linearity_heatmap_checkbox = QCheckBox("Draw linearity error")
         self.draw_linearity_heatmap_checkbox.setChecked(False)
         self.draw_linearity_heatmap_checkbox.stateChanged.connect(draw_linearity_heatmap_callback)
 
@@ -1054,7 +1054,7 @@ class CameraIntrinsicsCalibratorUI(QMainWindow):
                 f"Linear error cols rms:  {err_rms_cols:.2f} px"  # noqa E231
             )
             self.aspect_ratio_label.setText(
-                f"Aspect Reatio:  {detection.get_aspect_ratio_pattern():.2f} px"  # noqa E231
+                f"Aspect Ratio:  {detection.get_aspect_ratio_pattern():.2f} px"  # noqa E231
             )
             self.rough_tilt_label.setText(
                 f"Rough tilt: {detection.get_tilt():.2f} degrees"  # noqa E231

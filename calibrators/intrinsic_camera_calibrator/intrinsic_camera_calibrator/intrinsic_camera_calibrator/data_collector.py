@@ -364,7 +364,7 @@ class DataCollector(ParameterizedClass):
         return self.training_heatmap
 
     def get_linearity_heatmap(self) -> np.array:
-        """Return the linearity map to evaluate the recitification error."""
+        """Return the linearity map to evaluate the image rectification."""
         return self.linearity_heatmap
 
     def get_evaluation_occupancy_heatmap(self) -> np.array:
@@ -594,7 +594,7 @@ class DataCollector(ParameterizedClass):
         mode: OperationMode = OperationMode.CALIBRATION,
     ) -> CollectionStatus:
         """Evaluate detections mad ein evaluation mode."""
-        # process wihtout filtering detections
+        # process witout filtering detections
         self.update_linearity_heatmap(self.linearity_heatmap, detection)
 
     def get_skew_coverage(self):

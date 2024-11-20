@@ -130,7 +130,7 @@ class ArrayBoardDetection(BoardDetection):
         return self._cached_flattened_cell_sizes
 
     def get_aspect_ratio_pattern(self) -> float:
-        """Get aspect ratio using the calibration pattern, wich should be squared."""
+        """Get aspect ratio using the calibration pattern, which should be squared."""
         tilt, pan = self.get_rotation_angles()
         acceptance_angle = 10
 

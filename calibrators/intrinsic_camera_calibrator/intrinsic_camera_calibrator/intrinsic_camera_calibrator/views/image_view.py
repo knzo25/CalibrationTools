@@ -271,8 +271,8 @@ class ImageView(QGraphicsItem, QObject):
         painter.drawText(position_text_speed, "Speed")
 
         # ToDo: define percentage to change skew and pct size to change to green
-        thresold_to_be_green = 0.3
-        if self.skew_percentage < thresold_to_be_green:
+        threshold_to_be_green = 0.3
+        if self.skew_percentage < threshold_to_be_green:
             pen_skew = QPen(color_red)
             brush_skew = QBrush(color_red)
         else:
@@ -294,7 +294,7 @@ class ImageView(QGraphicsItem, QObject):
                 int(display_size.height() * 0.03),
             ),
         )
-        # Draw the skew progrees bar
+        # Draw the skew progress bar
         painter.drawRect(skew_indicator)
 
         # ToDo: define percentage to change skew and pct size to change to green
@@ -323,7 +323,7 @@ class ImageView(QGraphicsItem, QObject):
                 int(display_size.height() * 0.03),
             ),
         )
-        # Draw the board size progrees bar
+        # Draw the board size progress bar
         painter.drawRect(board_size_indicator)
 
         # Draw board pan tilt angle text
