@@ -29,7 +29,7 @@ calibrator_type: opencv
 
 data_collector:
   max_samples: 500
-  decorrelate_eval_samples: 5
+  decorrelate_eval_samples: 5 # cspell:disable-line
   max_allowed_tilt: 45.0
   filter_by_speed: True
   max_allowed_pixel_speed: 10.0
