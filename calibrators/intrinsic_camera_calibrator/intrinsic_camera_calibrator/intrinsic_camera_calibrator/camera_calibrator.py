@@ -14,7 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 from collections import defaultdict
 import copy
 import logging
@@ -1061,9 +1060,9 @@ class CameraIntrinsicsCalibratorUI(QMainWindow):
             self.raw_linear_error_cols_rms_label.setText(
                 f"Linear error cols rms:  {err_rms_cols:.2f} px"  # noqa E231
             )
-            self.aspect_ratio_label.setText(
-                f"Aspect Ratio:  {detection.get_aspect_ratio_pattern():.2f} px"  # noqa E231
-            )
+            # self.aspect_ratio_label.setText(
+            #    f"Aspect Ratio:  {detection.get_aspect_ratio_pattern():.2f} px"  # noqa E231
+            # )
             self.rough_tilt_label.setText(
                 f"Rough tilt: {detection.get_tilt(camera_model):.2f} degrees"  # noqa E231
             )
@@ -1100,7 +1099,7 @@ class CameraIntrinsicsCalibratorUI(QMainWindow):
                 0 if self.last_detection is None else detection.get_speed(self.last_detection)
             )
             self.last_detection = detection
-            pan, tilt = detection.get_rotation_angles()
+            pan, tilt = rough_angles
             self.image_view.set_draw_indicators(
                 board_speed,
                 self.data_collector.max_allowed_pixel_speed.value,
@@ -1110,7 +1109,7 @@ class CameraIntrinsicsCalibratorUI(QMainWindow):
                 err_rms_cols,
                 pct_err_rows,
                 pct_err_cols,
-                detection.get_aspect_ratio_pattern(),
+                0.0,  # detection.get_aspect_ratio_pattern(),
                 pan,
                 tilt,
                 self.indicators_alpha_spinbox.value(),
